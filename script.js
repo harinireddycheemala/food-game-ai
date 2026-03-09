@@ -6,7 +6,7 @@ const startScreen = document.getElementById('start-screen');
 const gameContainer = document.getElementById('game-container');
 const pairSelector = document.getElementById('pair-selector');
 
-// Available Data (We have 8 types of food)
+// Available Data
 const allIcons = ['🍕', '🍔', '🍣', '🌮', '🍝', '🍦', '🌶️', '🥗'];
 
 // State
@@ -19,34 +19,48 @@ let matches = 0;
 let timerInterval;
 let seconds = 0;
 
-// 1. Start Game (Read User Input)
+// 1. Start Game
 function startGame() {
-    // Get selected number of pairs
+    console.log("Start clicked"); // Debug log
     const pairsCount = parseInt(pairSelector.value);
     
     // Switch Screens
     startScreen.style.display = 'none';
     gameContainer.style.display = 'block';
 
-    // Generate Deck based on selection
+    // Generate Deck
     const selectedIcons = allIcons.slice(0, pairsCount);
-    const deck = [...selectedIcons, ...selectedIcons]; // Create pairs
-    
-    // Shuffle and Start
+    const deck = [...selectedIcons, ...selectedIcons]; 
     cards = shuffle(deck);
-    resetVariables();
-    renderBoard();
+    
+    // Reset Stats
+    moves = 0;
+    matches = 0;
+    seconds = 0;
+    hasFlippedCard = false;
+    lockBoard = false;
+    firstCard = null;
+    secondCard = null;
+    updateStats();
+    
+    // Render
+    renderBoard(cards);
     startTimer();
 }
 
-// 2. Render Board (Dynamic Grid)
-function renderBoard() {
-    gameBoard.innerHTML = '';
-    // Adjust grid columns based on pairs
-    const cols = cards.length <= 8 ? 4 : 6;
+// 2. Render Board (Fixed Logic)
+function renderBoard(deck) {
+    gameBoard.innerHTML = ''; // Clear previous board
+    
+    // Calculate columns safely
+    let cols = 4;
+    if (deck.length > 12) {
+        cols = 6;
+    }
+
     gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    cards.forEach((icon, index) => {
+    deck.forEach((icon, index) => {
         const card = document.createElement('div');
         card.classList.add('card');
         card.dataset.icon = icon;
@@ -62,18 +76,6 @@ function resetGame() {
     startScreen.style.display = 'block';
     clearInterval(timerInterval);
     messageDisplay.textContent = "";
-}
-
-function resetVariables() {
-    moves = 0;
-    matches = 0;
-    seconds = 0;
-    hasFlippedCard = false;
-    lockBoard = false;
-    firstCard = null;
-    secondCard = null;
-    updateStats();
-    clearInterval(timerInterval);
 }
 
 // 3. Shuffling Algorithm
@@ -141,6 +143,7 @@ function resetBoardLogic() {
 
 // 5. Timer & Stats
 function startTimer() {
+    clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         seconds++;
         const mins = Math.floor(seconds / 60);
