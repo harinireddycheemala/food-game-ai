@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuisine Match - AI Logic Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ Cuisine Match</h1>
+            <p>AI-Driven Logic & Pattern Recognition Demo</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-box">
+                <span>Moves:</span>
+                <span id="move-count">0</span>
+            </div>
+            <div class="stat-box">
+                <span>Time:</span>
+                <span id="timer">00:00</span>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board" id="game-board">
+            <!-- Cards will be injected here by JS -->
+        </div>
+
+        <div class="controls">
+            <button onclick="startGame()" class="btn-primary">Start New Game</button>
+            <button onclick="aiHint()" class="btn-secondary">💡 AI Hint</button>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
