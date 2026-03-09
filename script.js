@@ -2,9 +2,14 @@ const gameBoard = document.getElementById('game-board');
 const moveDisplay = document.getElementById('move-count');
 const timeDisplay = document.getElementById('timer');
 const messageDisplay = document.getElementById('message');
+const startScreen = document.getElementById('start-screen');
+const gameContainer = document.getElementById('game-container');
+const pairSelector = document.getElementById('pair-selector');
 
-// Data
-const icons = ['🍕', '🍔', '🍣', '🌮', '🍝', '🍦', '🌶️', '🥗'];
+// Available Data (We have 8 types of food)
+const allIcons = ['🍕', '🍔', '🍣', '🌮', '🍝', '🍦', '🌶️', '🥗'];
+
+// State
 let cards = [];
 let hasFlippedCard = false;
 let lockBoard = false;
@@ -14,27 +19,33 @@ let matches = 0;
 let timerInterval;
 let seconds = 0;
 
-// 1. Initialize Game (Shuffling Algorithm)
+// 1. Start Game (Read User Input)
 function startGame() {
-    // Reset state
-    moves = 0;
-    matches = 0;
-    seconds = 0;
-    hasFlippedCard = false;
-    lockBoard = false;
-    firstCard = null;
-    secondCard = null;
-    updateStats();
-    clearInterval(timerInterval);
-    startTimer();
-    messageDisplay.textContent = "";
+    // Get selected number of pairs
+    const pairsCount = parseInt(pairSelector.value);
+    
+    // Switch Screens
+    startScreen.style.display = 'none';
+    gameContainer.style.display = 'block';
 
-    // Create Deck & Shuffle (Randomization Logic)
-    const deck = [...icons, ...icons];
+    // Generate Deck based on selection
+    const selectedIcons = allIcons.slice(0, pairsCount);
+    const deck = [...selectedIcons, ...selectedIcons]; // Create pairs
+    
+    // Shuffle and Start
     cards = shuffle(deck);
+    resetVariables();
+    renderBoard();
+    startTimer();
+}
 
-    // Render Board
+// 2. Render Board (Dynamic Grid)
+function renderBoard() {
     gameBoard.innerHTML = '';
+    // Adjust grid columns based on pairs
+    const cols = cards.length <= 8 ? 4 : 6;
+    gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
     cards.forEach((icon, index) => {
         const card = document.createElement('div');
         card.classList.add('card');
@@ -46,7 +57,26 @@ function startGame() {
     });
 }
 
-// 2. Shuffling Algorithm (Fisher-Yates)
+function resetGame() {
+    gameContainer.style.display = 'none';
+    startScreen.style.display = 'block';
+    clearInterval(timerInterval);
+    messageDisplay.textContent = "";
+}
+
+function resetVariables() {
+    moves = 0;
+    matches = 0;
+    seconds = 0;
+    hasFlippedCard = false;
+    lockBoard = false;
+    firstCard = null;
+    secondCard = null;
+    updateStats();
+    clearInterval(timerInterval);
+}
+
+// 3. Shuffling Algorithm
 function shuffle(array) {
     let currentIndex = array.length, randomIndex;
     while (currentIndex != 0) {
@@ -57,7 +87,7 @@ function shuffle(array) {
     return array;
 }
 
-// 3. Game Logic
+// 4. Game Logic
 function flipCard() {
     if (lockBoard) return;
     if (this === firstCard) return;
@@ -86,9 +116,9 @@ function disableCards() {
     firstCard.classList.add('matched');
     secondCard.classList.add('matched');
     matches++;
-    resetBoard();
+    resetBoardLogic();
     
-    if (matches === icons.length) {
+    if (matches === cards.length / 2) {
         endGame();
     }
 }
@@ -100,16 +130,16 @@ function unflipCards() {
         secondCard.classList.remove('flipped');
         firstCard.innerText = '❓';
         secondCard.innerText = '❓';
-        resetBoard();
+        resetBoardLogic();
     }, 1000);
 }
 
-function resetBoard() {
+function resetBoardLogic() {
     [hasFlippedCard, lockBoard] = [false, false];
     [firstCard, secondCard] = [null, null];
 }
 
-// 4. Timer
+// 5. Timer & Stats
 function startTimer() {
     timerInterval = setInterval(() => {
         seconds++;
@@ -119,18 +149,17 @@ function startTimer() {
     }, 1000);
 }
 
+function updateStats() {
+    moveDisplay.textContent = moves;
+}
+
 function endGame() {
     clearInterval(timerInterval);
     messageDisplay.textContent = `🎉 You Won in ${moves} moves!`;
 }
 
-function updateStats() {
-    moveDisplay.textContent = moves;
-}
-
-// 5. AI FEATURE: Pattern Recognition Helper
+// 6. AI Hint
 function aiHint() {
-    // Simple AI: Looks for two un-matched cards that have the same icon in the DOM
     const allCards = document.querySelectorAll('.card');
     const flippedCards = Array.from(document.querySelectorAll('.flipped'));
     const matchedCards = Array.from(document.querySelectorAll('.matched'));
@@ -138,15 +167,13 @@ function aiHint() {
     
     if (hiddenCards.length === 0) return;
 
-    // Brute-force scan to find a pair (Simulated AI Perception)
     for (let i = 0; i < hiddenCards.length; i++) {
         for (let j = i + 1; j < hiddenCards.length; j++) {
             if (hiddenCards[i].dataset.icon === hiddenCards[j].dataset.icon) {
-                // AI Found a Match!
-                hiddenCards[i].style.background = '#fcd34d'; // Highlight
+                hiddenCards[i].style.background = '#fcd34d';
                 hiddenCards[j].style.background = '#fcd34d';
                 setTimeout(() => {
-                    hiddenCards[i].style.background = ''; // Remove highlight
+                    hiddenCards[i].style.background = '';
                     hiddenCards[j].style.background = '';
                 }, 1000);
                 messageDisplay.textContent = "🤖 AI Hint: Highlighted a potential match!";
@@ -156,5 +183,3 @@ function aiHint() {
     }
     messageDisplay.textContent = "🤖 AI Hint: No immediate matches found, keep looking!";
 }
-
-startGame();
