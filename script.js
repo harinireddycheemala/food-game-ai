@@ -1,30 +1,30 @@
 /* --- NAVIGATION LOGIC --- */
 function showGameSelector() {
-    hideAllScreens();
+    console.log("Opening Game Selector");
+    document.getElementById('main-menu').style.display = 'none';
     document.getElementById('game-selector').style.display = 'block';
 }
 
 function launchMemoryGame() {
-    hideAllScreens();
+    console.log("Launching Memory Game");
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-selector').style.display = 'none';
     document.getElementById('memory-game').style.display = 'block';
-    // Memory game needs explicit init
     initMemoryGame(); 
 }
 
 function launchRecipeGame() {
-    hideAllScreens();
+    console.log("Launching Recipe Game");
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-selector').style.display = 'none';
     document.getElementById('recipe-game').style.display = 'block';
     initRecipeGame();
 }
 
 function goBack(targetId) {
-    hideAllScreens();
+    console.log("Going back to", targetId);
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     document.getElementById(targetId).style.display = 'block';
-}
-
-function hideAllScreens() {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.style.display = 'none');
 }
 
 /* --- SOUND --- */
@@ -32,10 +32,10 @@ let soundEnabled = false;
 function toggleSound() {
     soundEnabled = !soundEnabled;
     document.getElementById('sound-status').textContent = soundEnabled ? "ON" : "OFF";
-    // In a real app, you would play a beep here using Audio()
+    console.log("Sound is now", soundEnabled ? "ON" : "OFF");
 }
 
-/* --- MEMORY GAME LOGIC (Existing) --- */
+/* --- MEMORY GAME LOGIC --- */
 const gameBoard = document.getElementById('game-board');
 const moveDisplay = document.getElementById('move-count');
 const timeDisplay = document.getElementById('timer');
@@ -51,11 +51,11 @@ let timerInterval;
 let seconds = 0;
 
 function initMemoryGame() {
-    // Default to medium difficulty (4 pairs)
     startMemoryGame(4);
 }
 
 function startMemoryGame(pairsCount = 4) {
+    console.log("Starting Memory Game with", pairsCount, "pairs");
     const selectedIcons = allIcons.slice(0, pairsCount);
     const deck = [...selectedIcons, ...selectedIcons]; 
     cards = shuffle(deck);
@@ -161,10 +161,32 @@ function endGame() {
     clearInterval(timerInterval);
     messageDisplay.textContent = `🎉 You Won in ${moves} moves!`;
 }
-function aiHint() { /* ... (Keep existing AI Hint logic) ... */ }
-// (For brevity, assuming you keep the AI hint function or remove it if not needed)
 
-/* --- RECIPE GAME LOGIC (NEW) --- */
+function aiHint() {
+    const allCards = document.querySelectorAll('.card');
+    const flippedCards = Array.from(document.querySelectorAll('.flipped'));
+    const matchedCards = Array.from(document.querySelectorAll('.matched'));
+    const hiddenCards = Array.from(allCards).filter(c => !flippedCards.includes(c) && !matchedCards.includes(c));
+    
+    if (hiddenCards.length === 0) return;
+
+    for (let i = 0; i < hiddenCards.length; i++) {
+        for (let j = i + 1; j < hiddenCards.length; j++) {
+            if (hiddenCards[i].dataset.icon === hiddenCards[j].dataset.icon) {
+                hiddenCards[i].style.background = '#fcd34d';
+                hiddenCards[j].style.background = '#fcd34d';
+                setTimeout(() => {
+                    hiddenCards[i].style.background = '';
+                    hiddenCards[j].style.background = '';
+                }, 1000);
+                messageDisplay.textContent = "🤖 AI Hint: Highlighted a potential match!";
+                return;
+            }
+        }
+    }
+}
+
+/* --- RECIPE GAME LOGIC --- */
 const ingredientsGrid = document.getElementById('ingredients-grid');
 const recipeResult = document.getElementById('recipe-result');
 const recipeName = document.getElementById('recipe-name');
@@ -185,6 +207,7 @@ const ingredientsData = [
 let selectedIngredients = [];
 
 function initRecipeGame() {
+    console.log("Initializing Recipe Game");
     selectedIngredients = [];
     renderIngredients();
     recipeResult.style.display = 'none';
@@ -220,13 +243,10 @@ function generateRecipe() {
         alert("Please select exactly 3 ingredients!");
         return;
     }
-
-    // AI Logic: Rule Based System
     const s = selectedIngredients;
     let resultName = "";
     let resultDesc = "";
 
-    // Logic Tree
     if (s.includes('Eggs') && s.includes('Bread') && s.includes('Cheese')) {
         resultName = "Cheese Omelette Toast";
         resultDesc = "A classic breakfast with melted cheese on top.";
